@@ -11,9 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Auth.BLL\Auth.BLL.csproj" />
-    <ProjectReference Include="..\Auth.Common\Auth.Common.csproj" />
-    <ProjectReference Include="..\Auth.DataAccess\Auth.DataAccess.csproj" />
+    <ProjectReference Include="..\Insurance.BLL\Insurance.BLL.csproj" />
+    <ProjectReference Include="..\Insurance.Common\Insurance.Common.csproj" />
+    <ProjectReference Include="..\Insurance.DataAccess\Insurance.DataAccess.csproj" />
   </ItemGroup>
 
 </Project>

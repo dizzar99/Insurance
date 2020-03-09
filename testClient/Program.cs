@@ -1,17 +1,15 @@
-﻿using System;
+﻿using Insurance.BLL.Interface.Extensions;
+using Insurance.BLL.Interface.Models.SessionModels;
+using Insurance.Common.Implementation;
+using Insurance.Common.Interface;
+using Newtonsoft.Json;
+using System;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using Auth.BLL.Interface.Models.SessionModels;
-using Auth.Common.Extensions;
-using Auth.Common.Implementation;
-using Auth.Common.Interface;
-using Newtonsoft.Json;
-using ECPoint = Auth.BLL.Interface.Models.SessionModels.ECPoint;
+using ECPoint = Insurance.BLL.Interface.Models.SessionModels.ECPoint;
 
 namespace testClient
 {

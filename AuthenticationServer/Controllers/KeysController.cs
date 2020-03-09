@@ -1,7 +1,7 @@
-﻿using Auth.BLL.Interface.Interfaces;
-using Auth.Common.Extensions;
-using Auth.Common.Implementation;
-using Auth.Common.Interface;
+﻿using Insurance.BLL.Interface.Extensions;
+using Insurance.BLL.Interface.Interfaces;
+using Insurance.Common.Implementation;
+using Insurance.Common.Interface;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 

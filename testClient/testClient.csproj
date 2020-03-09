@@ -10,8 +10,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Auth.BLL.Interface\Auth.BLL.Interface.csproj" />
-    <ProjectReference Include="..\Auth.Common\Auth.Common.csproj" />
+    <ProjectReference Include="..\Insurance.BLL.Interface\Insurance.BLL.Interface.csproj" />
+    <ProjectReference Include="..\Insurance.Common\Insurance.Common.csproj" />
   </ItemGroup>
 
 </Project>
