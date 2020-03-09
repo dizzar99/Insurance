@@ -9,6 +9,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Auth.BLL.Implementations
@@ -83,7 +84,7 @@ namespace Auth.BLL.Implementations
             return serverHello;
         }
 
-        public async Task<ECPoint> GenerateMasterKey(int sessionId, ECPoint clientPublicKey)
+        public async Task<byte[]> GenerateMasterKey(int sessionId, ECPoint clientPublicKey)
         {
             var dbSession = await this.context.Sessions
                 .Include(s => s.ClientHello)
@@ -101,7 +102,7 @@ namespace Auth.BLL.Implementations
             this.context.Sessions.Update(dbSession);
             await this.context.SaveChangesAsync();
 
-            return secret;
+            return dbSession.SessionKey;
         }
 
         private async Task SignServerHello(ServerHello serverHello)
@@ -117,11 +118,6 @@ namespace Auth.BLL.Implementations
             };
         }
 
-        private byte[] GenerateKey(byte[] clientRandom, byte[] serverRandom, DbECPoint masterKey)
-        {
-            return Helper.ExclusiveOr(clientRandom, serverRandom, masterKey.X);
-        }
-
         public async Task DeclaimSession(int sessionId)
         {
             var dbSession = await this.GetSession(sessionId);
@@ -129,29 +125,25 @@ namespace Auth.BLL.Implementations
             this.context.Sessions.Remove(dbSession);
         }
 
-        //public async Task<SymmetricKey> GetSessionKey(int sessionId, bool firstTime)
-        //{
-        //    var dbSession = await this.context.Sessions.FindAsync(sessionId);
+        public async Task<byte[]> RefreshSession(int sessionId, byte[] secret)
+        {
+            var dbSession = await this.GetSession(sessionId);
+            var aesProvider = new AesProvider(dbSession.SessionKey);
+            var clientRandomDecrypted = aesProvider.Decrypt(secret);
+            if (!dbSession.ClientHello.ClientRandom.SequenceEqual(clientRandomDecrypted))
+            {
+                // TODO: Invalid clientRandomSecret
+                throw new Exception();
+            }
 
-        //    if (firstTime)
-        //    {
-        //        return this.mapper.Map<SymmetricKey>(dbSession.SymmetricKey);
-        //    }
+            var newSecret = this.GenerateRandomSecret(32);
+            dbSession.SessionKey = newSecret;
+            this.context.Sessions.Update(dbSession);
+            await this.context.SaveChangesAsync();
 
-        //    if (!dbSession.Confirmed)
-        //    {
-        //        // TODO: SessionNotConfirmedException.
-        //    }
-
-        //    bool isAllowedKey = dbSession.AllowedUsageCount > 0;
-        //    bool isExpired = dbSession.Expired < DateTime.Now;
-        //    if (!isAllowedKey || isExpired)
-        //    {
-        //        // TODO: SessionKeyExpiredException
-        //    }
-
-        //    return this.mapper.Map<SymmetricKey>(dbSession.SymmetricKey);
-        //}
+            var encryptedNewSecret = aesProvider.Encrypt(newSecret);
+            return encryptedNewSecret;
+        }
 
         private byte[] GenerateRandomSecret(int bufSize)
         {
@@ -163,7 +155,12 @@ namespace Auth.BLL.Implementations
 
         private async Task<DbSession> GetSession(int sessionId)
         {
-            var dbSession = await this.context.Sessions.FindAsync(sessionId);
+            var dbSession = await this.context.Sessions
+                .Include(s => s.ClientHello)
+                .Include(s => s.MasterKey)
+                .Include(s => s.ServerHello)
+                .FirstOrDefaultAsync(s => s.Id == sessionId);
+
             if (dbSession is null)
             {
                 // TODO: sessionNotFoundException.
@@ -175,6 +172,11 @@ namespace Auth.BLL.Implementations
         private bool CompareBytes(byte[] lhs, byte[] rhs)
         {
             return StructuralComparisons.StructuralEqualityComparer.Equals(lhs, rhs);
+        }
+
+        private byte[] GenerateKey(byte[] clientRandom, byte[] serverRandom, DbECPoint masterKey)
+        {
+            return Helper.ExclusiveOr(clientRandom, serverRandom, masterKey.X);
         }
     }
 }

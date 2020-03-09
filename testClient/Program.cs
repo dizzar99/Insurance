@@ -22,11 +22,12 @@ namespace testClient
         {
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders
-                .Accept
-                .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+               .Accept
+               .Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+            var clientRandom = GenerateClientHello();
             var serverKey = await GetServerPublicKey(client);
-            var serverHello = await GetServerHello(client);
+            var serverHello = await GetServerHello(client, clientRandom);
 
             Console.WriteLine(VerifySignature(serverKey, serverHello));
 
@@ -37,7 +38,26 @@ namespace testClient
             await SendPublicKeyToServer(client, serverHello.Id, keyPair.publicKey);
 
             var masterKey = dh.GetSharedKey(keyPair.privateKey, serverHello.PublicKey);
-            Console.WriteLine(Convert.ToBase64String(masterKey.X));
+
+            var sessionKey = GenerateKey(clientRandom, serverHello.ServerRandom, masterKey);
+            var aes = new AesProvider(sessionKey);
+            var secret = aes.Encrypt(clientRandom);
+            Console.WriteLine(Convert.ToBase64String(sessionKey));
+
+            var newSessionKey = await RefreshSessionKey(client, serverHello.Id, secret);
+            sessionKey = aes.Decrypt(newSessionKey);
+            Console.WriteLine(Convert.ToBase64String(sessionKey));
+        }
+
+        private static async Task<byte[]> RefreshSessionKey(HttpClient client, int sessionId, byte[] secret)
+        {
+            string url = $"api/sessions/{sessionId}/refresh";
+
+            var result = await client.PostAsync(applicationUrl + url, new StringContent(JsonConvert.SerializeObject(secret), Encoding.UTF8, "application/json"));
+            var obj = await result.Content.ReadAsStringAsync();
+            var newSecret = JsonConvert.DeserializeObject<byte[]>(obj);
+
+            return newSecret;
         }
 
         private static bool VerifySignature(ECPoint serverKey, ServerHello serverHello)
@@ -58,10 +78,8 @@ namespace testClient
             return result;
         }
 
-        private static async Task<ServerHello> GetServerHello(HttpClient client)
+        private static async Task<ServerHello> GetServerHello(HttpClient client, byte[] clientRandom)
         {
-            var clientRandom = GenerateClientHello();
-
             var result = await client.PostAsync(applicationUrl + "api/sessions/hello", new StringContent(JsonConvert.SerializeObject(new ClientHello
             {
                 ClientRandom = clientRandom,
@@ -98,5 +116,9 @@ namespace testClient
             return clientRandom;
         }
 
+        private static byte[] GenerateKey(byte[] clientRandom, byte[] serverRandom, ECPoint masterKey)
+        {
+            return Helper.ExclusiveOr(clientRandom, serverRandom, masterKey.X);
+        }
     }
 }

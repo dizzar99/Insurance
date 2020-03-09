@@ -65,7 +65,15 @@ namespace AuthenticationServer.Controllers
         public async Task GetMasterKey(int id, ECPoint clientPublicKey)
         {
             var masterKey = await this.sessionService.GenerateMasterKey(id, clientPublicKey);
-            this.logger.LogError(Convert.ToBase64String(masterKey.X));
+            this.logger.LogError(Convert.ToBase64String(masterKey));
+        }
+
+        [HttpPost("{id}/refresh")]
+        public async Task<byte[]> RefreshSessionKey(int id, byte[] secret)
+        {
+            var result = await this.sessionService.RefreshSession(id, secret);
+
+            return result;
         }
 
         //[HttpGet]

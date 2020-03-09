@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Auth.Common.Implementation
+namespace Auth.Common.Extensions
 {
     internal static class IntegerExtensions
     {

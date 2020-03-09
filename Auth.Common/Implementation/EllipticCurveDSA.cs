@@ -1,4 +1,5 @@
-﻿using Auth.Common.Interface;
+﻿using Auth.Common.Extensions;
+using Auth.Common.Interface;
 using System;
 using System.Numerics;
 using System.Security.Cryptography;

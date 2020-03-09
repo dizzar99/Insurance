@@ -10,15 +10,6 @@ namespace Auth.BLL.Mapper
     {
         public MapperProfile()
         {
-            //this.CreateMap<DbRsaKey, RsaPublicKey>()
-            //    .BeforeMap((dbRsaKey, rsaKey) =>
-            //    {
-            //        if (dbRsaKey.ExpiredDate < DateTime.Now)
-            //        {
-            //            throw new ServerKeyExpiredException();
-            //        }
-            //    });
-
             this.CreateMap<Session, DbSession>()
                 .ForMember(d => d.Created, opt => opt.MapFrom(p => DateTime.UtcNow))
                 .ReverseMap();
