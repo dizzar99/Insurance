@@ -11,12 +11,10 @@ namespace AuthenticationServer.Controllers
     public class SessionsController : ControllerBase
     {
         private readonly ISessionService sessionService;
-        private readonly ILogger logger;
 
-        public SessionsController(ISessionService sessionService, ILogger<SessionsController> logger)
+        public SessionsController(ISessionService sessionService)
         {
             this.sessionService = sessionService;
-            this.logger = logger;
         }
 
         [HttpPost("hello")]

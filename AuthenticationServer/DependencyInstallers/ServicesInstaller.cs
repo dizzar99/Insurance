@@ -13,8 +13,10 @@ namespace AuthenticationServer.DependencyInstallers
         {
             services.AddScoped<IServerKeyManager, DefaultKeyManager>();
             services.AddScoped<ISessionService, SessionService>();
-            services.AddSingleton(new EllipticCurve());
+            services.AddScoped<IIdentityService, IdentityService>();
+            services.AddScoped<IMailSender, EmailSender>();
             services.AddScoped(s => MappingConfiguration.Init());
+            services.AddSingleton(new EllipticCurve());
         }
     }
 }

@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Insurance.Common", "Insuran
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "testClient", "testClient\testClient.csproj", "{6B9A5A2D-F13B-464D-A4DA-11DB5CA5A26D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Insurance.WebApi", "Insurance.WebApi\Insurance.WebApi.csproj", "{FE694492-4D5B-428B-9419-C5381AF6617F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{6B9A5A2D-F13B-464D-A4DA-11DB5CA5A26D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B9A5A2D-F13B-464D-A4DA-11DB5CA5A26D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6B9A5A2D-F13B-464D-A4DA-11DB5CA5A26D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE694492-4D5B-428B-9419-C5381AF6617F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE694492-4D5B-428B-9419-C5381AF6617F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE694492-4D5B-428B-9419-C5381AF6617F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE694492-4D5B-428B-9419-C5381AF6617F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
