@@ -1,6 +1,4 @@
-﻿using Insurance.BLL.Interface.Models.SessionModels;
-
-namespace Insurance.BLL.Interface.Models.SessionModels
+﻿namespace Insurance.BLL.Interface.Models.SessionModels
 {
     public class ServerHello
     {

@@ -26,9 +26,11 @@ namespace AuthenticationServer
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseMiddleware<ExceptionHandlerMiddleware>();
-            app.UseAuthentication();
 
             app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

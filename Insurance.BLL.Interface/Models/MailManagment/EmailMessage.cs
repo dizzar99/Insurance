@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Insurance.BLL.Interface.Models.MailManagment
+﻿namespace Insurance.BLL.Interface.Models.MailManagment
 {
     public class EmailMessage
     {

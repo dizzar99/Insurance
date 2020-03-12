@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Text;
 
 namespace AuthenticationServer.DependencyInstallers
@@ -14,6 +15,20 @@ namespace AuthenticationServer.DependencyInstallers
             var jwtSettings = new JwtSettings();
             configuration.Bind(nameof(JwtSettings), jwtSettings);
 
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = this.GetKey(jwtSettings.Secret),
+                ValidateLifetime = true,
+                ValidateAudience = false,
+                ValidateIssuer = false,
+                RequireExpirationTime = true,
+                SaveSigninToken = false,
+                ClockSkew = TimeSpan.Zero,
+            };
+
+            services.AddSingleton(tokenValidationParameters);
+
             services.AddAuthentication(x =>
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -22,16 +37,8 @@ namespace AuthenticationServer.DependencyInstallers
             })
             .AddJwtBearer(x =>
             {
-                x.SaveToken = true;
-                x.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = this.GetKey(jwtSettings.Secret),
-                    ValidateActor = false,
-                    ValidateIssuer = false,
-                    RequireExpirationTime = true,
-                    ValidateLifetime = true
-                };
+                x.TokenValidationParameters = tokenValidationParameters;
+                x.SaveToken = false;
             });
 
             services.AddSingleton(jwtSettings);
@@ -42,6 +49,28 @@ namespace AuthenticationServer.DependencyInstallers
         private SymmetricSecurityKey GetKey(string secret)
         {
             return new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secret));
+        }
+
+        private bool CustomLifetimeValidator(DateTime? notBefore, DateTime? expires, SecurityToken securityToken, TokenValidationParameters validationParameters)
+        {
+            if (expires != null)
+            {
+                return DateTime.UtcNow < expires;
+            }
+            return false;
+        }
+
+        class ReplayCache : ITokenReplayCache
+        {
+            public bool TryAdd(string securityToken, DateTime expiresOn)
+            {
+                return false;
+            }
+
+            public bool TryFind(string securityToken)
+            {
+                return false;
+            }
         }
     }
 }

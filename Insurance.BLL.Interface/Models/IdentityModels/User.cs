@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Insurance.BLL.Interface.Models.IdentityModels
+﻿namespace Insurance.BLL.Interface.Models.IdentityModels
 {
     public class User
     {

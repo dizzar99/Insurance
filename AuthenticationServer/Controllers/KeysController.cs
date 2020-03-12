@@ -2,6 +2,7 @@
 using Insurance.BLL.Interface.Interfaces;
 using Insurance.Common.Implementation;
 using Insurance.Common.Interface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -28,6 +29,7 @@ namespace AuthenticationServer.Controllers
             return this.Ok();
         }
 
+        [Authorize]
         [HttpGet("key")]
         public async Task<IActionResult> GetServerKey()
         {

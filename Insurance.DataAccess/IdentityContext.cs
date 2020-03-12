@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Insurance.DataAccess.IdentityModels;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Insurance.DataAccess
@@ -9,5 +10,7 @@ namespace Insurance.DataAccess
         {
             this.Database.EnsureCreated();
         }
+
+        public DbSet<DbRefreshToken> RefreshTokens { get; set; }
     }
 }

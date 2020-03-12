@@ -49,6 +49,18 @@ namespace AuthenticationServer.Controllers
             return this.Ok(new AuthSuccessResponse
             {
                 Token = authResult.Token,
+                RefreshToken = authResult.RefreshToken
+            });
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Login(RefreshTokenRequest token)
+        {
+            var refreshTokenResult = await this.identityService.RefreshTokenAsync(token.Token, token.RefreshToken);
+            return this.Ok(new AuthSuccessResponse
+            {
+                Token = refreshTokenResult.Token,
+                RefreshToken = refreshTokenResult.RefreshToken,
             });
         }
 
@@ -59,6 +71,7 @@ namespace AuthenticationServer.Controllers
             return this.Ok(new AuthSuccessResponse
             {
                 Token = authResult.Token,
+                RefreshToken = authResult.RefreshToken
             });
         }
     }

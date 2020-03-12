@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Insurance.BLL.Interface.Models.IdentityModels.Requests
+﻿namespace Insurance.BLL.Interface.Models.IdentityModels.Requests
 {
     public class LoginUserRequest
     {
