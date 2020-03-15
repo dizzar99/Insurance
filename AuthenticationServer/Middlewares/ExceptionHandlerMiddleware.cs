@@ -1,7 +1,10 @@
 ﻿using Insurance.BLL.Interface.Exceptions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace AuthenticationServer.Middlewares
@@ -15,7 +18,7 @@ namespace AuthenticationServer.Middlewares
             this.next = next;
         }
 
-        public async Task Invoke(HttpContext httpContext)
+        public async Task Invoke(HttpContext httpContext, ILogger<ExceptionHandlerMiddleware> logger)
         {
             try
             {
@@ -23,6 +26,7 @@ namespace AuthenticationServer.Middlewares
             }
             catch(ServiceException e)
             {
+                logger.LogError(e.Message);
                 httpContext.Response.Clear();
                 httpContext.Response.StatusCode = e.ErrorCode;
                 var errorObj = new { ErrorMessage = e.Message };
@@ -32,6 +36,7 @@ namespace AuthenticationServer.Middlewares
             }
             catch(Exception e)
             {
+                logger.LogError(e.Message);
                 httpContext.Response.StatusCode = 500;
                 var json = JsonConvert.SerializeObject(e.Message);
                 httpContext.Response.ContentType = "Application/json";

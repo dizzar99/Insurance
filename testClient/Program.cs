@@ -1,4 +1,5 @@
-﻿using Insurance.BLL.Interface.Extensions;
+﻿using AuthenticationServer.Domain;
+using Insurance.BLL.Interface.Extensions;
 using Insurance.BLL.Interface.Models.SessionModels;
 using Insurance.Common.Implementation;
 using Insurance.Common.Interface;
@@ -7,6 +8,7 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using ECPoint = Insurance.BLL.Interface.Models.SessionModels.ECPoint;
@@ -40,11 +42,37 @@ namespace testClient
             var sessionKey = GenerateKey(clientRandom, serverHello.ServerRandom, masterKey);
             var aes = new AesProvider(sessionKey);
             var secret = aes.Encrypt(clientRandom);
-            Console.WriteLine(Convert.ToBase64String(sessionKey));
 
-            var newSessionKey = await RefreshSessionKey(client, serverHello.Id, secret);
-            sessionKey = aes.Decrypt(newSessionKey);
-            Console.WriteLine(Convert.ToBase64String(sessionKey));
+            string userName = "Dima11";
+            string password = "1234";
+            var sessionId = serverHello.Id;
+            client.DefaultRequestHeaders.TryAddWithoutValidation("SessionId", new [] {$"{sessionId}"});
+            string request = JsonConvert.SerializeObject(new {userName, password});
+            var byteRequest = Encoding.UTF8.GetBytes(request);
+            var encoded = aes.Encrypt(byteRequest);
+
+            var result = await client.PostAsync(applicationUrl + "api/users/login", new ByteArrayContent(encoded));
+            var obj = await result.Content.ReadAsByteArrayAsync();
+            
+
+            var message = Encoding.UTF8.GetString(obj);
+            
+             var decrypted = aes.Decrypt(obj);
+             var json = Encoding.UTF8.GetString(decrypted);
+            // var loginResult = JsonConvert.DeserializeObject<AuthSuccessResponse>(json);
+            // Console.WriteLine(Convert.ToBase64String(sessionKey));
+
+            // var newSessionKey = await RefreshSessionKey(client, serverHello.Id, secret);
+            // sessionKey = aes.Decrypt(newSessionKey);
+            // Console.WriteLine(Convert.ToBase64String(sessionKey));
+        }
+
+        private static byte[] GetZeroIV()
+        {
+            const int ivSize = 16;
+            var iv = new byte[ivSize];
+            Array.ForEach(iv, b => b = 0);
+            return iv;
         }
 
         private static async Task<byte[]> RefreshSessionKey(HttpClient client, int sessionId, byte[] secret)

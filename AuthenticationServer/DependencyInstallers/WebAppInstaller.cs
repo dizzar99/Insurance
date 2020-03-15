@@ -1,5 +1,6 @@
 ﻿using Insurance.BLL.Interface.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -41,6 +42,10 @@ namespace AuthenticationServer.DependencyInstallers
                 x.SaveToken = false;
             });
 
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;
+            });
             services.AddSingleton(jwtSettings);
             services.AddLogging();
             services.AddControllers();

@@ -159,7 +159,7 @@ namespace Insurance.BLL.Implementations
 
         private void ValidateSession(DbSession dbSession)
         {
-            if (dbSession.Confirmed)
+            if (!dbSession.Confirmed)
             {
                 throw new SessionNotConfirmedException();
             }

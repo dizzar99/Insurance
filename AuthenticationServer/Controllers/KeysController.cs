@@ -29,7 +29,6 @@ namespace AuthenticationServer.Controllers
             return this.Ok();
         }
 
-        [Authorize]
         [HttpGet("key")]
         public async Task<IActionResult> GetServerKey()
         {

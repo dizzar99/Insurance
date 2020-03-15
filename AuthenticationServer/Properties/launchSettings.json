@@ -19,7 +19,6 @@
     },
     "AuthenticationServer": {
       "commandName": "Project",
-      "launchBrowser": true,
       "launchUrl": "api/sessions",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

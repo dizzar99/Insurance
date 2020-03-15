@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -10,6 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AuthenticationServer\AuthenticationServer.csproj" />
     <ProjectReference Include="..\Insurance.BLL.Interface\Insurance.BLL.Interface.csproj" />
     <ProjectReference Include="..\Insurance.Common\Insurance.Common.csproj" />
   </ItemGroup>
