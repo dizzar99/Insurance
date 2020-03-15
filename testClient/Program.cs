@@ -20,45 +20,53 @@ namespace testClient
         static string applicationUrl = "http://localhost:5000/";
         static async Task Main(string[] args)
         {
-            HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders
-               .Accept
-               .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var serverKeyService = new ServerKeyService();
+            var sessionService = new SessionService();
+            var serverPublicKey = await serverKeyService.GetServerPublicKey();
+            await sessionService.ExchangeKeyWithServer(serverPublicKey);
 
-            var clientRandom = GenerateClientHello();
-            var serverKey = await GetServerPublicKey(client);
-            var serverHello = await GetServerHello(client, clientRandom);
+            var userService = new UserService(sessionService);
+            var loginResult = await userService.Login("Dima11", "1234");
+            Console.WriteLine(JsonConvert.SerializeObject(loginResult));
+            //HttpClient client = new HttpClient();
+            //client.DefaultRequestHeaders
+            //   .Accept
+            //   .Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            Console.WriteLine(VerifySignature(serverKey, serverHello));
+            //var clientRandom = GenerateClientHello();
+            //var serverKey = await GetServerPublicKey(client);
+            //var serverHello = await GetServerHello(client, clientRandom);
 
-            var ec = new EllipticCurve();
-            var dh = new DiffieHellman(ec);
-            var keyPair = dh.GenerateByteKeyPair();
+            //Console.WriteLine(VerifySignature(serverKey, serverHello));
 
-            await SendPublicKeyToServer(client, serverHello.Id, keyPair.publicKey);
+            //var ec = new EllipticCurve();
+            //var dh = new DiffieHellman(ec);
+            //var keyPair = dh.GenerateByteKeyPair();
 
-            var masterKey = dh.GetSharedKey(keyPair.privateKey, serverHello.PublicKey);
+            //await SendPublicKeyToServer(client, serverHello.Id, keyPair.publicKey);
 
-            var sessionKey = GenerateKey(clientRandom, serverHello.ServerRandom, masterKey);
-            var aes = new AesProvider(sessionKey);
-            var secret = aes.Encrypt(clientRandom);
+            //var masterKey = dh.GetSharedKey(keyPair.privateKey, serverHello.PublicKey);
 
-            string userName = "Dima11";
-            string password = "1234";
-            var sessionId = serverHello.Id;
-            client.DefaultRequestHeaders.TryAddWithoutValidation("SessionId", new [] {$"{sessionId}"});
-            string request = JsonConvert.SerializeObject(new {userName, password});
-            var byteRequest = Encoding.UTF8.GetBytes(request);
-            var encoded = aes.Encrypt(byteRequest);
+            //var sessionKey = GenerateKey(clientRandom, serverHello.ServerRandom, masterKey);
+            //var aes = new AesProvider(sessionKey);
+            //var secret = aes.Encrypt(clientRandom);
 
-            var result = await client.PostAsync(applicationUrl + "api/users/login", new ByteArrayContent(encoded));
-            var obj = await result.Content.ReadAsByteArrayAsync();
-            
+            //string userName = "Dima11";
+            //string password = "1234";
+            //var sessionId = serverHello.Id;
+            //client.DefaultRequestHeaders.TryAddWithoutValidation("SessionId", new [] {$"{sessionId}"});
+            //string request = JsonConvert.SerializeObject(new {userName, password});
+            //var byteRequest = Encoding.UTF8.GetBytes(request);
+            //var encoded = aes.Encrypt(byteRequest);
 
-            var message = Encoding.UTF8.GetString(obj);
-            
-             var decrypted = aes.Decrypt(obj);
-             var json = Encoding.UTF8.GetString(decrypted);
+            //var result = await client.PostAsync(applicationUrl + "api/users/login", new ByteArrayContent(encoded));
+            //var obj = await result.Content.ReadAsByteArrayAsync();
+
+
+            //var message = Encoding.UTF8.GetString(obj);
+
+            // var decrypted = aes.Decrypt(obj);
+            // var json = Encoding.UTF8.GetString(decrypted);
             // var loginResult = JsonConvert.DeserializeObject<AuthSuccessResponse>(json);
             // Console.WriteLine(Convert.ToBase64String(sessionKey));
 
