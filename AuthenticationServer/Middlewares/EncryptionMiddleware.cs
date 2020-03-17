@@ -53,11 +53,17 @@ namespace AuthenticationServer.Middlewares
                 var orig = context.Response.Body;
                 context.Response.Body = csEncrypt;
 
-                await this.next.Invoke(context);
-                csEncrypt.FlushFinalBlock();
-                context.Response.Body = orig;
-                memoryStream.Seek(0, SeekOrigin.Begin);
-                await memoryStream.CopyToAsync(orig);
+                try
+                {
+                    await this.next.Invoke(context);
+                    csEncrypt.FlushFinalBlock();
+                }
+                finally
+                {
+                    context.Response.Body = orig;
+                    memoryStream.Seek(0, SeekOrigin.Begin);
+                    await memoryStream.CopyToAsync(orig);
+                }
             }
         }
 

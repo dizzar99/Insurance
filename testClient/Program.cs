@@ -1,158 +1,89 @@
-﻿using AuthenticationServer.Domain;
-using Insurance.BLL.Interface.Extensions;
-using Insurance.BLL.Interface.Models.SessionModels;
-using Insurance.Common.Implementation;
-using Insurance.Common.Interface;
-using Newtonsoft.Json;
-using System;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Security.Cryptography;
-using System.Text;
+﻿using System;
 using System.Threading.Tasks;
-using ECPoint = Insurance.BLL.Interface.Models.SessionModels.ECPoint;
+using Newtonsoft.Json;
 
 namespace testClient
 {
     class Program
     {
-        static string applicationUrl = "http://localhost:5000/";
+        static readonly ServerKeyService serverKeyService = new ServerKeyService();
+        static readonly SessionService sessionService = new SessionService();
+        static readonly UserService userService;
+
+        static readonly(string, Func<Task>) [] Menu = new(string, Func<Task>) []
+        {
+            ("1. Login", Login),
+            ("2. Refresh", Refresh),
+            ("3. Register", Register),
+        };
+
+        static Program()
+        {
+            userService = new UserService(sessionService);
+        }
+
         static async Task Main(string[] args)
         {
-            var serverKeyService = new ServerKeyService();
-            var sessionService = new SessionService();
             var serverPublicKey = await serverKeyService.GetServerPublicKey();
             await sessionService.ExchangeKeyWithServer(serverPublicKey);
 
-            var userService = new UserService(sessionService);
-            var loginResult = await userService.Login("Dima11", "1234");
-            Console.WriteLine(JsonConvert.SerializeObject(loginResult));
-            //HttpClient client = new HttpClient();
-            //client.DefaultRequestHeaders
-            //   .Accept
-            //   .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var requestCoordinator = new RequestCoordinator(sessionService);
 
-            //var clientRandom = GenerateClientHello();
-            //var serverKey = await GetServerPublicKey(client);
-            //var serverHello = await GetServerHello(client, clientRandom);
-
-            //Console.WriteLine(VerifySignature(serverKey, serverHello));
-
-            //var ec = new EllipticCurve();
-            //var dh = new DiffieHellman(ec);
-            //var keyPair = dh.GenerateByteKeyPair();
-
-            //await SendPublicKeyToServer(client, serverHello.Id, keyPair.publicKey);
-
-            //var masterKey = dh.GetSharedKey(keyPair.privateKey, serverHello.PublicKey);
-
-            //var sessionKey = GenerateKey(clientRandom, serverHello.ServerRandom, masterKey);
-            //var aes = new AesProvider(sessionKey);
-            //var secret = aes.Encrypt(clientRandom);
-
-            //string userName = "Dima11";
-            //string password = "1234";
-            //var sessionId = serverHello.Id;
-            //client.DefaultRequestHeaders.TryAddWithoutValidation("SessionId", new [] {$"{sessionId}"});
-            //string request = JsonConvert.SerializeObject(new {userName, password});
-            //var byteRequest = Encoding.UTF8.GetBytes(request);
-            //var encoded = aes.Encrypt(byteRequest);
-
-            //var result = await client.PostAsync(applicationUrl + "api/users/login", new ByteArrayContent(encoded));
-            //var obj = await result.Content.ReadAsByteArrayAsync();
-
-
-            //var message = Encoding.UTF8.GetString(obj);
-
-            // var decrypted = aes.Decrypt(obj);
-            // var json = Encoding.UTF8.GetString(decrypted);
-            // var loginResult = JsonConvert.DeserializeObject<AuthSuccessResponse>(json);
-            // Console.WriteLine(Convert.ToBase64String(sessionKey));
-
-            // var newSessionKey = await RefreshSessionKey(client, serverHello.Id, secret);
-            // sessionKey = aes.Decrypt(newSessionKey);
-            // Console.WriteLine(Convert.ToBase64String(sessionKey));
-        }
-
-        private static byte[] GetZeroIV()
-        {
-            const int ivSize = 16;
-            var iv = new byte[ivSize];
-            Array.ForEach(iv, b => b = 0);
-            return iv;
-        }
-
-        private static async Task<byte[]> RefreshSessionKey(HttpClient client, int sessionId, byte[] secret)
-        {
-            string url = $"api/sessions/{sessionId}/refresh";
-
-            var result = await client.PostAsync(applicationUrl + url, new StringContent(JsonConvert.SerializeObject(secret), Encoding.UTF8, "application/json"));
-            var obj = await result.Content.ReadAsStringAsync();
-            var newSecret = JsonConvert.DeserializeObject<byte[]>(obj);
-
-            return newSecret;
-        }
-
-        private static bool VerifySignature(ECPoint serverKey, ServerHello serverHello)
-        {
-            var ec = new EllipticCurve();
-            var ecdsa = new EllipticCurveDSA(ec);
-
-            var byteMessage = GetByteMessage(serverHello);
-            var r = serverHello.Signature.R;
-            var s = serverHello.Signature.S;
-            var sig = (r, s);
-            return ecdsa.Verify(byteMessage, sig, serverKey);
-        }
-
-        private static byte[] GetByteMessage(ServerHello serverHello)
-        {
-            var result = serverHello.ServerRandom.Concat(serverHello.PublicKey.X).Concat(serverHello.PublicKey.Y).ToArray();
-            return result;
-        }
-
-        private static async Task<ServerHello> GetServerHello(HttpClient client, byte[] clientRandom)
-        {
-            var result = await client.PostAsync(applicationUrl + "api/sessions/hello", new StringContent(JsonConvert.SerializeObject(new ClientHello
+            while (true)
             {
-                ClientRandom = clientRandom,
-            }), Encoding.UTF8, "application/json"));
+                foreach(var item in Menu)
+                {
+                    Console.WriteLine(item.Item1);
+                }
 
-            var obj = await result.Content.ReadAsStringAsync();
-            var serverHello = JsonConvert.DeserializeObject<ServerHello>(obj);
-
-            return serverHello;
+                var result = int.Parse(Console.ReadLine());
+                var action = Menu[result - 1].Item2;
+                await action();
+            }
         }
 
-        private static async Task SendPublicKeyToServer(HttpClient client, int sessionId, ECPoint publicKey)
+        static async Task Login()
         {
-            await client.PostAsync(applicationUrl + $"api/sessions/{sessionId}/master", new StringContent(JsonConvert.SerializeObject(publicKey), Encoding.UTF8, "application/json"));
+            var login = Console.ReadLine();
+            var password = Console.ReadLine();
+            try
+            {
+                await userService.Login(login, password);
+                Console.WriteLine("Log in.");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
 
-        private static async Task<ECPoint> GetServerPublicKey(HttpClient client)
+        static async Task Refresh()
         {
-            string url = "http://localhost:5000/api/keys/key";
-
-            var result = await client.GetAsync(url);
-            var obj = await result.Content.ReadAsStringAsync();
-            var serverKey = JsonConvert.DeserializeObject<ECPoint>(obj);
-
-            return serverKey;
+            try
+            {
+                await userService.RefreshToken();
+                Console.WriteLine("Refreshed.");
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
 
-        private static byte[] GenerateClientHello()
+        static async Task Register()
         {
-            var clientRandom = new byte[32];
-            var random = new Random();
-            random.NextBytes(clientRandom);
-
-            return clientRandom;
-        }
-
-        private static byte[] GenerateKey(byte[] clientRandom, byte[] serverRandom, ECPoint masterKey)
-        {
-            return Helper.ExclusiveOr(clientRandom, serverRandom, masterKey.X);
+            var email = Console.ReadLine();
+            var login = Console.ReadLine();
+            var password = Console.ReadLine();
+            try
+            {
+                await userService.Register(email, login, password);
+                Console.WriteLine("Registered.");
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
     }
 }

@@ -32,21 +32,19 @@ namespace Insurance.BLL.Implementations
 
         private async Task Send(MimeMessage mailMessage)
         {
-            using (var client = new SmtpClient())
+            using var client = new SmtpClient();
+            try
             {
-                try
-                {
-                    await client.ConnectAsync(SmtpServer, Port, false);
-                    client.AuthenticationMechanisms.Remove("XOAUTH2");
-                    await client.AuthenticateAsync(From, Password);
+                await client.ConnectAsync(SmtpServer, Port, false);
+                client.AuthenticationMechanisms.Remove("XOAUTH2");
+                await client.AuthenticateAsync(From, Password);
 
-                    client.Send(mailMessage);
-                }
-                finally
-                {
-                    client.Disconnect(true);
-                    client.Dispose();
-                }
+                client.Send(mailMessage);
+            }
+            finally
+            {
+                client.Disconnect(true);
+                client.Dispose();
             }
         }
     }

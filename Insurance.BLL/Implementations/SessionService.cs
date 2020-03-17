@@ -17,6 +17,8 @@ namespace Insurance.BLL.Implementations
 {
     public class SessionService : ISessionService
     {
+        private const int AllowedUsageCount = 5;
+        private const int AllowedHours = 1;
         private readonly ApplicationContext context;
         private readonly IServerKeyManager keyManager;
         private readonly IMapper mapper;
@@ -28,6 +30,11 @@ namespace Insurance.BLL.Implementations
             this.keyManager = keyManager;
             this.mapper = mapper;
             this.ellipticCurve = ellipticCurve;
+        }
+
+        private DateTime ExpiredDate
+        {
+            get => DateTime.UtcNow + new TimeSpan(0, 1, 0);
         }
 
         public async Task<byte[]> GetSessionKey(int sessionId)
@@ -61,7 +68,7 @@ namespace Insurance.BLL.Implementations
 
             var dbSession = new DbSession
             {
-                AllowedUsageCount = 5,
+                AllowedUsageCount = AllowedUsageCount,
                 ClientHello = dbClientHello,
                 Confirmed = false,
                 ServerHello = dbServerHello,
@@ -93,6 +100,7 @@ namespace Insurance.BLL.Implementations
             dbSession.MasterKey = masterKey;
             dbSession.SessionKey = this.GenerateKey(dbSession.ClientHello.ClientRandom, dbSession.ServerHello.ServerRandom, masterKey);
             dbSession.Confirmed = true;
+            dbSession.Expired = this.ExpiredDate;
 
             this.context.Sessions.Update(dbSession);
             await this.context.SaveChangesAsync();
@@ -112,7 +120,11 @@ namespace Insurance.BLL.Implementations
             }
 
             var newSecret = this.GenerateRandomSecret(32);
+
             dbSession.SessionKey = newSecret;
+            dbSession.AllowedUsageCount = AllowedUsageCount;
+            dbSession.Expired = this.ExpiredDate;
+
             this.context.Sessions.Update(dbSession);
             await this.context.SaveChangesAsync();
 
@@ -164,14 +176,14 @@ namespace Insurance.BLL.Implementations
                 throw new SessionNotConfirmedException();
             }
 
-            if (dbSession.Expired > DateTime.UtcNow)
+            if (dbSession.Expired < DateTime.UtcNow)
             {
-                throw new SessionNotConfirmedException();
+                throw new SessionKeyExpiredException();
             }
 
             if (dbSession.AllowedUsageCount == 0)
             {
-                throw new SessionNotConfirmedException();
+                throw new SessionKeyExpiredException();
             }
         }
 
