@@ -174,11 +174,11 @@ namespace Insurance.BLL.Implementations
                 throw new UserNotFoundException();
             }
 
-            //var userConfirmedEmail = await this.userManager.IsEmailConfirmedAsync(user);
-            //if (!userConfirmedEmail)
-            //{
-            //    throw new EmailConfirmationException("User does not confirm email.");
-            //}
+            var userConfirmedEmail = await this.userManager.IsEmailConfirmedAsync(user);
+            if (!userConfirmedEmail)
+            {
+                throw new EmailConfirmationException("User does not confirm email.");
+            }
 
             bool userHasValidPasword = await this.userManager.CheckPasswordAsync(user, loginUser.Password);
             if (!userHasValidPasword)

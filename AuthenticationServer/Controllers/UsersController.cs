@@ -37,7 +37,7 @@ namespace AuthenticationServer.Controllers
                 Content = $"Confirm your email address: {callbackUrl}"
             };
 
-            //await this.sender.SendMailAsync(message);
+            await this.sender.SendMailAsync(message);
             return this.Ok(parameters);
         }
 

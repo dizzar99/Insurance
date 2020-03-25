@@ -46,6 +46,7 @@ namespace AuthenticationServer.DependencyInstallers
             {
                 options.SuppressModelStateInvalidFilter = true;
             });
+
             services.AddSingleton(jwtSettings);
             services.AddLogging();
             services.AddControllers();

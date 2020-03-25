@@ -65,7 +65,7 @@ namespace testClient
             this.http.DefaultRequestHeaders.Remove(headerName);
         }
 
-        private HttpContent CreateHttpContent(object obj, bool encrypt)
+        private HttpContent CreateHttpContent<T>(T obj, bool encrypt)
         {
             var jsonRequest = JsonConvert.SerializeObject(obj);
             if (encrypt)
